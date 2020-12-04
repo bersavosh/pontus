@@ -4,7 +4,7 @@ from scipy.optimize import fsolve
 from scipy.interpolate import interp1d
 
 import matplotlib.pyplot as plt
-plt.rc('text', usetex=True)
+plt.rc('text', usetex=False)
 plt.rc('font', family='serif')
 colorset = ['#000000','#00270C','#00443C','#005083',
             '#034BCA','#483CFC','#9C2BFF','#EB24F4',
