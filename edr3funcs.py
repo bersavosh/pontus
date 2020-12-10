@@ -398,7 +398,7 @@ def comparison(name, dr2, dr3, mode,
     ax3.axvline(MAP_dr3,color=colorset[9],linestyle='--')
     ax3.axvline(lolim_dr3,color=colorset[9],linestyle=':')
     ax3.axvline(uplim_dr3,color=colorset[9],linestyle=':')
-    ax3.legend(fontsize=16)
+    ax3.legend(loc=1, fontsize=14)
     ax3.set_xlim(distxrange)
     ax3.set_ylim(0,)
     if mode == 'Atri':
@@ -480,7 +480,7 @@ def comparison_all(name, dr2, dr3,
     ax3.plot(bj_distrange_dr2,bj_pdf_dr2,'--',color=colorset[4],label='DR2 (Bailer-Jones)',lw=3,alpha=0.2)
     ax3.plot(distrange_dr3,atri_pdf_dr3(distrange_dr3),color=colorset[9],label='EDR3 (Atri)')
     ax3.plot(bj_distrange_dr3,bj_pdf_dr3,'--',color=colorset[9],label='EDR3 (Bailer-Jones)',lw=3,alpha=0.2)
-    ax3.legend(fontsize=16)
+    ax3.legend(loc=1,fontsize=16)
     ax3.set_xlim(distxrange)
     ax3.set_ylim(0,)
     ax3.set_title(f'DR2: $d$(Atri)={atri_MAP_dr2:.2}(-{atri_MAP_dr2-atri_lolim_dr2[0]:.2}/+{atri_uplim_dr2[0]-atri_MAP_dr2:.2}) kpc' +
