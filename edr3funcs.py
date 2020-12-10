@@ -56,7 +56,7 @@ source("distest_single.R")
     return bj_post, bj_results
 
 def bailerjones_new(src_id):
-    gaia = TapPlus(url="http://dc.g-vo.org/tableinfo/")
+    gaia = TapPlus(url="http://dc.zah.uni-heidelberg.de/tap")
 
     adql_query_newbj = f"""SELECT 
                                 source_id,
@@ -67,7 +67,7 @@ def bailerjones_new(src_id):
                         """
 
     job = gaia.launch_job(adql_query_newbj)
-    result = job_dr2.get_results()
+    result = job.get_results()
     return result
 
 
