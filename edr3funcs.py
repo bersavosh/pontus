@@ -44,14 +44,12 @@ rplothi <- NA
 
 source("distest_single.R")
 """
-    f = open("Gaia-DR2-distances/rscript.r", "w")
+    f = open("rscript.r", "w")
     f.write(rscript)
     f.close()
-    os.chdir('./Gaia-DR2-distances/')
     os.system('r rscript.r')
-    os.chdir('..')
-    bj_post = ascii.read('./Gaia-DR2-distances/bj_post.txt', names = ['d','pdf'])
-    bj_results = ascii.read('./Gaia-DR2-distances/bj_post_res.txt',data_start=0,names=['point_est'])
+    bj_post = ascii.read('bj_post.txt', names = ['d','pdf'])
+    bj_results = ascii.read('bj_post_res.txt',data_start=0,names=['point_est'])
     bj_post['d'] /= 1000.0
     bj_post['pdf'] *= 1000.0
     bj_results['point_est'] /= 1000.0
