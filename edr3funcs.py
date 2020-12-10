@@ -47,7 +47,7 @@ source("distest_single.R")
     f = open("rscript.r", "w")
     f.write(rscript)
     f.close()
-    os.system('r rscript.r')
+    os.system('Rscript rscript.r')
     bj_post = ascii.read('bj_post.txt', names = ['d','pdf'])
     bj_results = ascii.read('bj_post_res.txt',data_start=0,names=['point_est'])
     bj_post['d'] /= 1000.0
