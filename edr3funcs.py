@@ -500,11 +500,101 @@ def comparison_all(name, dr2, dr3,
 def gaiaedr3_plots(src_name, search_rad, tau_dr2, tau_dr3, distance_plotting_range, distance_method):
     source_name = src_name
     gaia_tab_dr2, gaia_tab_dr3 = gaia_search(target_resolver(source_name), search_rad)
-    gaia_zpcorr(gaia_tab_dr2,'dr2');
-    gaia_zpcorr(gaia_tab_dr3,'dr3');
-    if len(gaia_tab_dr2) != 1 and len(gaia_tab_dr2) != 1:
-        print('Error, number of Gaia counterparts found != 1. Change the search radius.')
-        return
+    try:
+        gaia_zpcorr(gaia_tab_dr2,'dr2');
+        gaia_zpcorr(gaia_tab_dr3,'dr3');
+    except:
+        if len(gaia_tab_dr2) != 1 and len(gaia_tab_dr2) != 1:
+            print('ERROR: number of Gaia counterparts found != 1. Change the search radius.')
+        else:
+            print('ERROR: ZP correction failed. The source may not have 5-parameter solution.')
+        keys = ['designation','ra','dec','parallax','parallax_error','parallax_over_error','pmra','pmra_error','pmdec','pmdec_error']
+        return vstack([gaia_tab_dr2[keys],gaia_tab_dr3[keys]]), None
+    
+    if distance_method == 'both':
+        atri_MAP_dr2, atri_pdf_dr2, distrange_dr2 = atri_dist(gaia_tab_dr2['parallax_zpcorr'][0],
+                                                              gaia_tab_dr2['parallax_error'][0],
+                                                              gaia_tab_dr2['ra'][0],gaia_tab_dr2['dec'][0])
+
+        atri_MAP_dr3, atri_pdf_dr3, distrange_dr3 = atri_dist(gaia_tab_dr3['parallax_zpcorr'][0],
+                                                              gaia_tab_dr3['parallax_error'][0],
+                                                              gaia_tab_dr3['ra'][0],gaia_tab_dr3['dec'][0])
+
+
+        atri_lolim_dr2, atri_uplim_dr2, ci_dr2 = atri_CIcalc(tau_dr2,atri_MAP_dr2, atri_pdf_dr2,'dr2')
+        atri_lolim_dr3, atri_uplim_dr3, ci_dr3 = atri_CIcalc(tau_dr3,atri_MAP_dr3, atri_pdf_dr3,'dr3')
+
+        bj_pdf_dr2 ,bj_pointest_dr2 = bailerjones(gaia_tab_dr2['ra'][0],gaia_tab_dr2['dec'][0],
+                                                  gaia_tab_dr2['parallax_zpcorr'][0],
+                                                  gaia_tab_dr2['parallax_error'][0])
+
+        bj_pdf_dr3 ,bj_pointest_dr3 = bailerjones(gaia_tab_dr3['ra'][0],gaia_tab_dr3['dec'][0],
+                                                  gaia_tab_dr3['parallax_zpcorr'][0],
+                                                  gaia_tab_dr3['parallax_error'][0])
+
+
+        tab, fig = comparison_all(source_name,gaia_tab_dr2,gaia_tab_dr3,
+                                  atri_MAP_dr2, atri_pdf_dr2, distrange_dr2,
+                                  atri_MAP_dr3, atri_pdf_dr3, distrange_dr3,
+                                  atri_lolim_dr2, atri_uplim_dr2,
+                                  atri_lolim_dr3, atri_uplim_dr3, 
+                                  bj_pointest_dr2['point_est'][0],bj_pdf_dr2['pdf'].data,bj_pdf_dr2['d'].data,
+                                  bj_pointest_dr3['point_est'][0],bj_pdf_dr3['pdf'].data,bj_pdf_dr3['d'].data,
+                                  bj_pointest_dr2['point_est'][1],bj_pointest_dr2['point_est'][2],
+                                  bj_pointest_dr3['point_est'][1],bj_pointest_dr3['point_est'][2],
+                                  distxrange=distance_plotting_range);
+    elif distance_method == 'atri':
+        atri_MAP_dr2, atri_pdf_dr2, distrange_dr2 = atri_dist(gaia_tab_dr2['parallax_zpcorr'][0],
+                                                              gaia_tab_dr2['parallax_error'][0],
+                                                              gaia_tab_dr2['ra'][0],gaia_tab_dr2['dec'][0])
+
+        atri_MAP_dr3, atri_pdf_dr3, distrange_dr3 = atri_dist(gaia_tab_dr3['parallax_zpcorr'][0],
+                                                              gaia_tab_dr3['parallax_error'][0],
+                                                              gaia_tab_dr3['ra'][0],gaia_tab_dr3['dec'][0])
+
+
+        atri_lolim_dr2, atri_uplim_dr2, ci_dr2 = atri_CIcalc(tau_dr2,atri_MAP_dr2, atri_pdf_dr2,'dr2')
+        atri_lolim_dr3, atri_uplim_dr3, ci_dr3 = atri_CIcalc(tau_dr3,atri_MAP_dr3, atri_pdf_dr3,'dr3')
+
+        tab, fig = comparison(source_name,gaia_tab_dr2,gaia_tab_dr3, 'Atri',
+                              atri_MAP_dr2, atri_pdf_dr2, distrange_dr2,
+                              atri_MAP_dr3, atri_pdf_dr3, distrange_dr3,
+                              atri_lolim_dr2, atri_uplim_dr2,
+                              atri_lolim_dr3, atri_uplim_dr3,
+                              distxrange=distance_plotting_range);
+    elif distance_method == 'bj':
+        bj_pdf_dr2 ,bj_pointest_dr2 = bailerjones(gaia_tab_dr2['ra'][0],gaia_tab_dr2['dec'][0],
+                                                  gaia_tab_dr2['parallax_zpcorr'][0],
+                                                  gaia_tab_dr2['parallax_error'][0])
+
+        bj_pdf_dr3 ,bj_pointest_dr3 = bailerjones(gaia_tab_dr3['ra'][0],gaia_tab_dr3['dec'][0],
+                                                  gaia_tab_dr3['parallax_zpcorr'][0],
+                                                  gaia_tab_dr3['parallax_error'][0])
+
+        tab, fig = comparison(source_name,gaia_tab_dr2,gaia_tab_dr3, 'BJ',
+                              bj_pointest_dr2['point_est'][0],bj_pdf_dr2['pdf'].data,bj_pdf_dr2['d'].data,
+                              bj_pointest_dr3['point_est'][0],bj_pdf_dr3['pdf'].data,bj_pdf_dr3['d'].data,
+                              bj_pointest_dr2['point_est'][1],bj_pointest_dr2['point_est'][2],
+                              bj_pointest_dr3['point_est'][1],bj_pointest_dr3['point_est'][2],
+                              distxrange=distance_plotting_range);
+
+    return tab, fig
+
+
+def gaiaedr3_plots_coords(ra, dec, search_rad, tau_dr2, tau_dr3, distance_plotting_range, distance_method):
+    source_name = ra+'\n'+dec
+    gaia_tab_dr2, gaia_tab_dr3 = gaia_search(SkyCoord(ra,dec,unit = (u.hourangle, u.deg), frame = 'icrs'), search_rad)
+    try:
+        gaia_zpcorr(gaia_tab_dr2,'dr2');
+        gaia_zpcorr(gaia_tab_dr3,'dr3');
+    except:
+        if len(gaia_tab_dr2) != 1 and len(gaia_tab_dr2) != 1:
+            print('ERROR: number of Gaia counterparts found != 1. Change the search radius.')
+        else:
+            print('ERROR: ZP correction failed. The source may not have 5-parameter solution.')
+        keys = ['designation','ra','dec','parallax','parallax_error','parallax_over_error','pmra','pmra_error','pmdec','pmdec_error']
+        return vstack([gaia_tab_dr2[keys],gaia_tab_dr3[keys]]), None
+    
     if distance_method == 'both':
         atri_MAP_dr2, atri_pdf_dr2, distrange_dr2 = atri_dist(gaia_tab_dr2['parallax_zpcorr'][0],
                                                               gaia_tab_dr2['parallax_error'][0],
