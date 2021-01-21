@@ -1,8 +1,10 @@
 import os
 import numpy as np
+import scipy.stats as st
 from scipy.integrate import quad
 from scipy.optimize import fsolve
 from scipy.interpolate import interp1d
+from IPython.display import display
 
 import matplotlib.pyplot as plt
 plt.rc('text', usetex=False)
@@ -56,7 +58,7 @@ source("distest_single.R")
     return bj_post, bj_results
 
 def bailerjones_new(src_id):
-    gaia = TapPlus(url="http://dc.zah.uni-heidelberg.de/tap")
+    gaia = TapPlus(url="http://dc.zah.uni-heidelberg.de/tap",verbose=False)
 
     adql_query_newbj = f"""SELECT 
                                 source_id,
@@ -252,7 +254,9 @@ def atri_CIcalc(tau, atri_MAP, atri_pdf, prefix='dr?'):
 
     lolim = fsolve(atrilofunc,atri_MAP*0.9)
     uplim = fsolve(atrihifunc,atri_MAP*1.1)
-    ci = quad(atri_pdf,lolim, uplim)[0]*100
+    ci = quad(atri_pdf,lolim, uplim, epsabs=1e-5)[0]*100
+    print('--------------------')
+    print(f'Atri distance PDF:')
     print(f'Gaia {prefix}')
     print(f'Most likely distance (kpc): {atri_MAP:.3}')
     print(f'PDF mode: {atri_pdf(atri_MAP):.3}')
@@ -262,12 +266,13 @@ def atri_CIcalc(tau, atri_MAP, atri_pdf, prefix='dr?'):
     print('--------------------')
     return lolim, uplim, ci
 
-def target_resolver(name):
+def target_resolver(name,verbose=True):
     """
     A simple SIMBAD name resolver to return coordinates
     """
     simbad_table = Simbad.query_object(name)
-    simbad_table.pprint(show_unit=True)
+    if verbose:
+        simbad_table.pprint(show_unit=True)
     coords = SkyCoord(simbad_table['RA'].data[0],simbad_table['DEC'].data[0],
                       unit = (u.hourangle, u.deg),
                       frame = 'icrs')
@@ -279,7 +284,7 @@ def gaia_search(coords, radius):
     Returns tables from both DR2 and EDR3
     """
     radius_deg = (radius*u.arcsec).to(u.deg).value
-    gaia = TapPlus(url="https://gea.esac.esa.int/tap-server/tap")
+    gaia = TapPlus(url="https://gea.esac.esa.int/tap-server/tap",verbose=False)
 
     adql_query_dr2 = f"""SELECT *
                          FROM gaiadr2.gaia_source
@@ -339,7 +344,7 @@ def comparison(name, dr2, dr3, mode,
                distxrange = [0.1,10],
                keys = ['designation','parallax','parallax_error','parallax_over_error','zpcorr_val','parallax_zpcorr','pmra','pmra_error','pmdec','pmdec_error']):
     
-    c = vstack([dr2[keys],dr3[keys]])
+    c = vstack([dr2[keys],dr3[keys]],metadata_conflicts='silent')
 
     fig = plt.figure(figsize=(14,6))
     ax0 = plt.subplot2grid((3,2),(0,1),fig=fig)
@@ -429,7 +434,7 @@ def comparison_all(name, dr2, dr3,
                    distxrange = [0.1,10],
                    keys = ['designation','parallax','parallax_error','parallax_over_error','zpcorr_val','parallax_zpcorr','pmra','pmra_error','pmdec','pmdec_error']):
     
-    c = vstack([dr2[keys],dr3[keys]])
+    c = vstack([dr2[keys],dr3[keys]],metadata_conflicts='silent')
 
     fig = plt.figure(figsize=(14,6))
     ax0 = plt.subplot2grid((3,2),(0,1),fig=fig)
@@ -504,12 +509,15 @@ def gaiaedr3_plots(src_name, search_rad, tau_dr2, tau_dr3, distance_plotting_ran
         gaia_zpcorr(gaia_tab_dr2,'dr2');
         gaia_zpcorr(gaia_tab_dr3,'dr3');
     except:
-        if len(gaia_tab_dr2) != 1 and len(gaia_tab_dr2) != 1:
+        if len(gaia_tab_dr2) != 1 or len(gaia_tab_dr3) != 1:
             print('ERROR: number of Gaia counterparts found != 1. Change the search radius.')
         else:
             print('ERROR: ZP correction failed. The source may not have 5-parameter solution.')
         keys = ['designation','ra','dec','parallax','parallax_error','parallax_over_error','pmra','pmra_error','pmdec','pmdec_error']
-        return vstack([gaia_tab_dr2[keys],gaia_tab_dr3[keys]]), None
+        return vstack([gaia_tab_dr2[keys],gaia_tab_dr3[keys]],metadata_conflicts='silent'), None
+
+    print('Separation between SIMBAD coordinates and the Gaia counterpart (DR2):',round(target_resolver(source_name,verbose=False).separation(SkyCoord(gaia_tab_dr2['ra'],gaia_tab_dr2['dec']))[0].arcsec,3),'arcsec')
+    print('Separation between SIMBAD coordinates and the Gaia counterpart (EDR3):',round(target_resolver(source_name,verbose=False).separation(SkyCoord(gaia_tab_dr3['ra'],gaia_tab_dr3['dec']))[0].arcsec,3),'arcsec')
     
     if distance_method == 'both':
         atri_MAP_dr2, atri_pdf_dr2, distrange_dr2 = atri_dist(gaia_tab_dr2['parallax_zpcorr'][0],
@@ -588,13 +596,16 @@ def gaiaedr3_plots_coords(ra, dec, search_rad, tau_dr2, tau_dr3, distance_plotti
         gaia_zpcorr(gaia_tab_dr2,'dr2');
         gaia_zpcorr(gaia_tab_dr3,'dr3');
     except:
-        if len(gaia_tab_dr2) != 1 and len(gaia_tab_dr2) != 1:
+        if len(gaia_tab_dr2) != 1 or len(gaia_tab_dr3) != 1:
             print('ERROR: number of Gaia counterparts found != 1. Change the search radius.')
         else:
             print('ERROR: ZP correction failed. The source may not have 5-parameter solution.')
         keys = ['designation','ra','dec','parallax','parallax_error','parallax_over_error','pmra','pmra_error','pmdec','pmdec_error']
-        return vstack([gaia_tab_dr2[keys],gaia_tab_dr3[keys]]), None
-    
+        return vstack([gaia_tab_dr2[keys],gaia_tab_dr3[keys]],metadata_conflicts='silent'), None
+
+    print('Separation between INPUT coordinates and the Gaia counterpart (DR2):',round(SkyCoord(ra,dec,unit = (u.hourangle, u.deg)).separation(SkyCoord(gaia_tab_dr2['ra'],gaia_tab_dr2['dec']))[0].arcsec,3),'arcsec')
+    print('Separation between INPUT coordinates and the Gaia counterpart (EDR3):',round(SkyCoord(ra,dec,unit = (u.hourangle, u.deg)).separation(SkyCoord(gaia_tab_dr3['ra'],gaia_tab_dr3['dec']))[0].arcsec,3),'arcsec')
+
     if distance_method == 'both':
         atri_MAP_dr2, atri_pdf_dr2, distrange_dr2 = atri_dist(gaia_tab_dr2['parallax_zpcorr'][0],
                                                               gaia_tab_dr2['parallax_error'][0],
@@ -664,3 +675,68 @@ def gaiaedr3_plots_coords(ra, dec, search_rad, tau_dr2, tau_dr3, distance_plotti
 
     return tab, fig
 
+def cipe(src_ra, src_dec, counterpart_separation, region_radius=0.1, numpoints=10000):
+    counterpart_separation = counterpart_separation * u.arcsec
+    region_radius = region_radius * u.degree
+    tap_cap = 100000
+    tap_server = TapPlus(url='https://gea.esac.esa.int/tap-server/tap',verbose=False)
+    catalog = 'gaiaedr3.gaia_source'
+
+    query = "SELECT TOP " + str(tap_cap) + \
+            " * FROM " + catalog + " WHERE ra BETWEEN " + \
+            str(src_ra.value - region_radius.value) + \
+            " AND " + str(src_ra.value + region_radius.value) + \
+            " AND dec BETWEEN " + str(src_dec.value - region_radius.value) + \
+            " AND " + str(src_dec.value + region_radius.value)
+
+    search = tap_server.launch_job(query)
+    results = search.get_results()
+    print('Number of Gaia sources:' + str(len(results)))
+
+    if len(results) == tap_cap:
+        print('WARNING: Gaia contains too many sources in the region >' + str(tap_cap) + '). Region may be too large.')
+
+    gaia_srclist = SkyCoord(ra=results['ra'], dec=results['dec'])
+
+    fake_srclist = SkyCoord(ra=src_ra + (np.random.rand(numpoints) - 0.5) * 2 * region_radius,
+                            dec=src_dec + (np.random.rand(numpoints) - 0.5) * 2 * region_radius)
+
+    sep_dist = fake_srclist.match_to_catalog_sky(gaia_srclist)[1].to(u.arcsec).value
+
+    fig1 = plt.figure(figsize=(6, 4))
+    ax1 = fig1.add_subplot(1,1,1)
+    ax1.hist(sep_dist, bins=50, color='#034BCA', edgecolor='w', density=True, label='Simulations')
+    model_x = np.linspace(0,8,1000)
+    params = st.genextreme.fit(sep_dist)
+    model_y = st.genextreme(*params).pdf(model_x)
+    p_less = len(sep_dist[sep_dist <= counterpart_separation.value])/len(sep_dist)*100
+    ax1.plot(model_x,model_y,color='#EB24F4',label='Gumble fit')
+    ax1.axvline(0.51,color='k',linestyle='--')
+    ax1.set_title(f"$P(d<{counterpart_separation.value}'')={p_less:.3}\%$",fontsize=12)
+    ax1.legend(fontsize=12)
+    ax1.set_xlabel(r'Distance to closest random Gaia source (arcsec)',fontsize=14)
+    ax1.set_ylabel(r'Probabilty density (arcsec$^{-1}$)',fontsize=14)
+    ax1.set_xlim(0,8)
+    ax1.minorticks_on()
+    ax1.tick_params(axis='both', which='major', labelsize=14)
+    ax1.tick_params(axis='both', which='major', length=9)
+    ax1.tick_params(axis='both', which='minor', length=4.5)
+    ax1.tick_params(axis='both', which='both', direction='in', right=True, top=True)
+
+    return fig1
+
+def gaia_src_summary_nb(source_name, search_radius, distance_range, distance_prior, tau_dr2, tau_dr3, 
+                        method ='simbad', source_ra='00 00 00.00', source_dec='00 00 00.00'):
+    if method == 'simbad':
+        tab, fig = gaiaedr3_plots(source_name, search_radius, tau_dr2, tau_dr3, 
+                                  distance_range, distance_prior)
+    elif method == 'coords':
+        tab, fig = gaiaedr3_plots_coords(source_ra, source_dec, search_radius, 
+                                         tau_dr2, tau_dr3, distance_range, distance_prior)
+    
+    lastab = bailerjones_new(tab['designation'][1][10:])
+    print('Table 1: DR2 and EDR3 counterparts')
+    display(tab)
+    print('Table 2: Bailer-Jones 2020 distances')
+    display(lastab)
+    return 
