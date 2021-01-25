@@ -735,8 +735,18 @@ def gaia_src_summary_nb(source_name, search_radius, distance_range, distance_pri
                                          tau_dr2, tau_dr3, distance_range, distance_prior)
     
     lastab = bailerjones_new(tab['designation'][1][10:])
+    txt_geo = str(round((lastab['r_med_geo'].data)[0]/1000,2))+\
+              '(-'+str(round((lastab['r_med_geo'].data - lastab['r_lo_geo'].data)[0]/1000,2))+\
+              '/+'+str(round((lastab['r_hi_geo'].data - lastab['r_med_geo'].data)[0]/1000,2))+')'
+
+    txt_geophot = str(round((lastab['r_med_photogeo'].data)[0]/1000,2))+\
+                  '(-'+str(round((lastab['r_med_photogeo'].data - lastab['r_lo_photogeo'].data)[0]/1000,2))+\
+                  '/+'+str(round((lastab['r_hi_photogeo'].data - lastab['r_med_photogeo'].data)[0]/1000,2))+')'
+
+    lastab.add_column([txt_geo],name='geodist (kpc)')
+    lastab.add_column([txt_geophot],name='geophot dist (kpc)')
     print('Table 1: DR2 and EDR3 counterparts')
     display(tab)
     print('Table 2: Bailer-Jones 2020 distances')
     display(lastab)
-    return 
+    return
