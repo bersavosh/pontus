@@ -342,7 +342,7 @@ def comparison(name, dr2, dr3, mode,
                lolim_dr2, uplim_dr2,
                lolim_dr3, uplim_dr3,
                distxrange = [0.1,10],
-               keys = ['designation','parallax','parallax_error','parallax_over_error','zpcorr_val','parallax_zpcorr','pmra','pmra_error','pmdec','pmdec_error']):
+               keys = ['DESIGNATION','parallax','parallax_error','parallax_over_error','zpcorr_val','parallax_zpcorr','pmra','pmra_error','pmdec','pmdec_error']):
     
     c = vstack([dr2[keys],dr3[keys]],metadata_conflicts='silent')
 
@@ -432,7 +432,7 @@ def comparison_all(name, dr2, dr3,
                    bj_lolim_dr2, bj_uplim_dr2,
                    bj_lolim_dr3, bj_uplim_dr3,
                    distxrange = [0.1,10],
-                   keys = ['designation','parallax','parallax_error','parallax_over_error','zpcorr_val','parallax_zpcorr','pmra','pmra_error','pmdec','pmdec_error']):
+                   keys = ['DESIGNATION','parallax','parallax_error','parallax_over_error','zpcorr_val','parallax_zpcorr','pmra','pmra_error','pmdec','pmdec_error']):
     
     c = vstack([dr2[keys],dr3[keys]],metadata_conflicts='silent')
 
@@ -513,7 +513,7 @@ def gaiaedr3_plots(src_name, search_rad, tau_dr2, tau_dr3, distance_plotting_ran
             print('ERROR: number of Gaia counterparts found != 1. Change the search radius.')
         else:
             print('ERROR: ZP correction failed. The source may not have 5-parameter solution.')
-        keys = ['designation','ra','dec','parallax','parallax_error','parallax_over_error','pmra','pmra_error','pmdec','pmdec_error']
+        keys = ['DESIGNATION','ra','dec','parallax','parallax_error','parallax_over_error','pmra','pmra_error','pmdec','pmdec_error']
         return vstack([gaia_tab_dr2[keys],gaia_tab_dr3[keys]],metadata_conflicts='silent'), None
 
     print('Separation between SIMBAD coordinates and the Gaia counterpart (DR2):',round(target_resolver(source_name,verbose=False).separation(SkyCoord(gaia_tab_dr2['ra'],gaia_tab_dr2['dec']))[0].arcsec,3),'arcsec')
@@ -600,7 +600,7 @@ def gaiaedr3_plots_coords(ra, dec, search_rad, tau_dr2, tau_dr3, distance_plotti
             print('ERROR: number of Gaia counterparts found != 1. Change the search radius.')
         else:
             print('ERROR: ZP correction failed. The source may not have 5-parameter solution.')
-        keys = ['designation','ra','dec','parallax','parallax_error','parallax_over_error','pmra','pmra_error','pmdec','pmdec_error']
+        keys = ['DESIGNATION','ra','dec','parallax','parallax_error','parallax_over_error','pmra','pmra_error','pmdec','pmdec_error']
         return vstack([gaia_tab_dr2[keys],gaia_tab_dr3[keys]],metadata_conflicts='silent'), None
 
     print('Separation between INPUT coordinates and the Gaia counterpart (DR2):',round(SkyCoord(ra,dec,unit = (u.hourangle, u.deg)).separation(SkyCoord(gaia_tab_dr2['ra'],gaia_tab_dr2['dec']))[0].arcsec,3),'arcsec')
@@ -747,7 +747,7 @@ def gaia_src_summary_nb(source_name, search_radius, distance_range, distance_pri
         tab, fig = gaiaedr3_plots_coords(source_ra, source_dec, search_radius, 
                                          tau_dr2, tau_dr3, distance_range, distance_prior)
     
-    lastab = bailerjones_new(tab['designation'][1][10:])
+    lastab = bailerjones_new(tab['DESIGNATION'][1][10:])
     txt_geo = str(round((lastab['r_med_geo'].data)[0]/1000,2))+\
               '(-'+str(round((lastab['r_med_geo'].data - lastab['r_lo_geo'].data)[0]/1000,2))+\
               '/+'+str(round((lastab['r_hi_geo'].data - lastab['r_med_geo'].data)[0]/1000,2))+')'
