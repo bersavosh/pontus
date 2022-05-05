@@ -287,7 +287,7 @@ def gaia_search(coords, radius):
     gaia = TapPlus(url="https://gea.esac.esa.int/tap-server/tap",verbose=False)
 
     adql_query_dr2 = f"""SELECT *
-                         FROM gaiadr2.gaia_source
+                         FROM gaiaedr3.gaia_source
                          WHERE 
                              1=CONTAINS(POINT('ICRS', ra, dec),
                                         CIRCLE('ICRS', {coords.ra.deg}, {coords.dec.deg}, {radius_deg}))
@@ -439,17 +439,17 @@ def comparison_all(name, dr2, dr3,
     fig = plt.figure(figsize=(14,6))
     ax0 = plt.subplot2grid((3,2),(0,1),fig=fig)
     ax0.set_title(name, fontsize=20)
-    ax0.errorbar(x = c[0]['parallax'], xerr = c[0]['parallax_error'], y = ['DR2'], 
-                 fmt='x',ms = 10,color=colorset[4],elinewidth=1.9,capsize=3,label='w/o ZP corr')
+    #ax0.errorbar(x = c[0]['parallax'], xerr = c[0]['parallax_error'], y = ['DR2'], 
+    #             fmt='x',ms = 10,color=colorset[4],elinewidth=1.9,capsize=3,label='w/o ZP corr')
     ax0.errorbar(x = c[1]['parallax'], xerr = c[1]['parallax_error'], y = ['DR3'], 
                  fmt='x',ms = 10,color=colorset[9],elinewidth=1.9,capsize=3)
-    ax0.errorbar(x = c[0]['parallax_zpcorr'], xerr = c[0]['parallax_error'],y = 0.1,
-                 fmt='.',ms = 10,color=colorset[4],elinewidth=1.9,capsize=3,label='w/ ZP corr')
+    #ax0.errorbar(x = c[0]['parallax_zpcorr'], xerr = c[0]['parallax_error'],y = 0.1,
+    #             fmt='.',ms = 10,color=colorset[4],elinewidth=1.9,capsize=3,label='w/ ZP corr')
     ax0.errorbar(x = c[1]['parallax_zpcorr'], xerr = c[1]['parallax_error'],y = 1.1,
                  fmt='.',ms = 10,color=colorset[9],elinewidth=1.9,capsize=3)
     ax0.set_xlabel('Parallax (mas)',fontsize=16)
     ax0.set_ylim(-0.5,1.5)
-    ax0.legend(fontsize=16,bbox_to_anchor=(1,1))
+    #ax0.legend(fontsize=16,bbox_to_anchor=(1,1))
     ax0.tick_params(axis='both', which='major', labelsize=16)
     ax0.tick_params(axis='both', which='major', length=5)
     ax0.tick_params(axis='both', which='minor', length=2.5)
@@ -457,8 +457,8 @@ def comparison_all(name, dr2, dr3,
     
     
     ax1 = plt.subplot2grid((3,2),(1,1),fig=fig)
-    ax1.errorbar(x = c[0]['pmra'], xerr = c[0]['pmra_error'], y = ['DR2'], 
-                 fmt='.',ms = 10,color=colorset[4],elinewidth=1.9,capsize=3)
+    #ax1.errorbar(x = c[0]['pmra'], xerr = c[0]['pmra_error'], y = ['DR2'], 
+    #             fmt='.',ms = 10,color=colorset[4],elinewidth=1.9,capsize=3)
     ax1.errorbar(x = c[1]['pmra'], xerr = c[1]['pmra_error'], y = ['DR3'], 
                  fmt='.',ms = 10,color=colorset[9],elinewidth=1.9,capsize=3)
     ax1.set_xlabel(r'$\mu_\alpha$ (mas yr$^{-1}$)',fontsize=16)
@@ -469,8 +469,8 @@ def comparison_all(name, dr2, dr3,
     ax1.tick_params(axis='both', which='both',direction='in',right=True,top=True)
     
     ax2 = plt.subplot2grid((3,2),(2,1),fig=fig)
-    ax2.errorbar(x = c[0]['pmdec'], xerr = c[0]['pmdec_error'], y = ['DR2'], 
-                 fmt='.',ms = 10,color=colorset[4],elinewidth=1.9,capsize=3)
+    #ax2.errorbar(x = c[0]['pmdec'], xerr = c[0]['pmdec_error'], y = ['DR2'], 
+    #             fmt='.',ms = 10,color=colorset[4],elinewidth=1.9,capsize=3)
     ax2.errorbar(x = c[1]['pmdec'], xerr = c[1]['pmdec_error'], y = ['DR3'], 
                  fmt='.',ms = 10,color=colorset[9],elinewidth=1.9,capsize=3)
     ax2.set_xlabel(r'$\mu_\delta$ (mas yr$^{-1}$)',fontsize=16)
@@ -481,16 +481,14 @@ def comparison_all(name, dr2, dr3,
     ax2.tick_params(axis='both', which='both',direction='in',right=True,top=True)
     
     ax3 = plt.subplot2grid((3,2),(0,0),fig=fig, rowspan=3)
-    ax3.plot(distrange_dr2,atri_pdf_dr2(distrange_dr2),color=colorset[4],label='DR2 (Atri)')
-    ax3.plot(bj_distrange_dr2,bj_pdf_dr2,'--',color=colorset[4],label='DR2 (Bailer-Jones)',lw=3,alpha=0.2)
+    #ax3.plot(distrange_dr2,atri_pdf_dr2(distrange_dr2),color=colorset[4],label='DR2 (Atri)')
+    #ax3.plot(bj_distrange_dr2,bj_pdf_dr2,'--',color=colorset[4],label='DR2 (Bailer-Jones)',lw=3,alpha=0.2)
     ax3.plot(distrange_dr3,atri_pdf_dr3(distrange_dr3),color=colorset[9],label='EDR3 (Atri)')
     ax3.plot(bj_distrange_dr3,bj_pdf_dr3,'--',color=colorset[9],label='EDR3 (Bailer-Jones)',lw=3,alpha=0.2)
     ax3.legend(loc=1,fontsize=16)
     ax3.set_xlim(distxrange)
     ax3.set_ylim(0,)
-    ax3.set_title(f'DR2: $d$(Atri)={atri_MAP_dr2:.2}(-{atri_MAP_dr2-atri_lolim_dr2[0]:.2}/+{atri_uplim_dr2[0]-atri_MAP_dr2:.2}) kpc' +
-                  f'; $d$(BJ)={bj_MAP_dr2:.2}(-{bj_MAP_dr2-bj_lolim_dr2:.2}/+{bj_uplim_dr2-bj_MAP_dr2:.2}) kpc\n' +
-                  f'EDR3: $d$(Atri)={atri_MAP_dr3:.2}(-{atri_MAP_dr3-atri_lolim_dr3[0]:.2}/+{atri_uplim_dr3[0]-atri_MAP_dr3:.2}) kpc' + 
+    ax3.set_title(f'EDR3: $d$(Atri)={atri_MAP_dr3:.2}(-{atri_MAP_dr3-atri_lolim_dr3[0]:.2}/+{atri_uplim_dr3[0]-atri_MAP_dr3:.2}) kpc' + 
                   f'; $d$(BJ)={bj_MAP_dr3:.2}(-{bj_MAP_dr3-bj_lolim_dr3:.2}/+{bj_uplim_dr3-bj_MAP_dr3:.2}) kpc', fontsize=16)
     ax3.set_xlabel(r'Distance (kpc)',fontsize=16)
     ax3.set_ylabel(r'PDF (kpc$^{-1}$)',fontsize=16)
@@ -762,4 +760,4 @@ def gaia_src_summary_nb(source_name, search_radius, distance_range, distance_pri
     display(tab)
     print('Table 2: Bailer-Jones 2020 distances')
     display(lastab)
-    return
+    return fig
